@@ -1,12 +1,12 @@
 {
-  "id": "wfrp4e-random-treasure",
-  "title": "WFRP4e – Random Treasure Generator",
-  "description": "Random Treasure Generator for Warhammer Fantasy Roleplay 4e, based on https://pacomiscelaneousstuff.blogspot.com/2019/08/treasure-generator.html",
-  "version": "1.0.15",
+  "id": "wfrp4e-random-reloaded",
+  "title": "WFRP4e – Random Treasure and Artefacts Generato",
+  "description": "Random Treasure Generator for Warhammer Fantasy Roleplay 4e, based on https://www.lahiette.com/leratierbretonnien/wp-content/uploads/2020/10/WFRP4-Unofficial-Treasure-Artefacts-1.0.pdf",
+  "version": "0.0.1",
   "packs": [
     {
-      "name": "wfrp4e-random-treasure-macros",
-      "label": "Random Treasure Macros",
+      "name": "wfrp4e-random-reloaded",
+      "label": "Random Treasure and Artefacts Macros",
       "path": "packs/wfrp4e-random-treasure-macros.db",
       "system": "wfrp4e",
       "type": "Macro",
@@ -23,26 +23,14 @@
       "name": "English",
       "path": "lang/en.json",
       "flags": {}
-    },
-    {
-      "lang": "es",
-      "name": "Español",
-      "path": "lang/es.json",
-      "flags": {}
-    },
-    {
-      "lang": "pl",
-      "name": "Polski",
-      "path": "lang/pl.json",
-      "flags": {}
     }
   ],
-  "url": "https://github.com/fmunoz-geo/wfrp4e-random-treasure",
-  "manifest": "https://raw.githubusercontent.com/fmunoz-geo/wfrp4e-random-treasure/1.0.15/module.json",
-  "download": "https://github.com/fmunoz-geo/wfrp4e-random-treasure/archive/refs/tags/1.0.15.zip",
+  "url": "https://github.com/orangebutblue/wfrp4e-random-reloaded",
+  "manifest": "",
+  "download": "",
   "authors": [
     {
-      "name": "fmunoz",
+      "name": "orangebutblue",
       "flags": {}
     }
   ],
