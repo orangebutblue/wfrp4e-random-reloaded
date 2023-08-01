@@ -91,7 +91,93 @@ Hooks.on("renderSidebarTab", async (app, html) => {
 	}
 });
 
+function choices(items, probabilities) {
+	const totalProb = probabilities.reduce((acc, prob) => acc + prob, 0);
+	const rand = Math.random() * totalProb;
+	let cumulativeProb = 0;
+
+	for (let i = 0; i < items.length; i++) {
+		cumulativeProb += probabilities[i];
+		if (rand < cumulativeProb) {
+			return items[i];
+		}
+	}
+
+	// If probabilities do not add up to 1, return a random item
+	return items[Math.floor(Math.random() * items.length)];
+}
+function roll_cat(args) {
+	// args: [p, min, max]
+	if (getRandomNumberInRange(1, 100) < args[0]) {
+		return getRandomNumberInRange(args[1], args[2]);
+	} else {
+		return 0;
+	}
+}
+function getRandomNumberInRange(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function newLoot(status){
+	console.log("Looting: " + status);
+	const table = random_treasure[status];
+	let cc = 1;  // current category (pennies, shillings, ...)
+	console.log(table);
+	let level = table[0];
+
+
+	for (const e of table) {
+		const vals = roll_cat(e);
+		if (vals !== 0) {
+			console.log(cols[cc - 1] + ":");
+			console.log(vals);
+			switch (cc) {
+				case 4: // domestic
+					for (let val = 0; val < vals; val++) {
+						console.log(domestic_items[Math.floor(Math.random() * 10)]);
+					}
+					break;
+				case 5: // gems
+					for (let val = 0; val < vals; val++) {
+						if (Math.floor(Math.random() * 10) < 6) {
+							// roll gem
+							const splitted_gems = gems[Math.floor(Math.random() * 10)].split(" / ");
+							console.log(splitted_gems[level - 1]);
+						} else {
+							// roll jewellery
+							const selectedJewellery = choices(jewellery, jewellery_p)[0];
+							console.log(selectedJewellery);
+						}
+						console.log("...worth " + roll(2, 10, false) + " " + get_loc_level(level));
+					}
+					break;
+				case 6: // art
+					for (let val = 0; val < vals; val++) {
+						const selectedArt = choices(art, art_p)[0];
+						console.log(selectedArt);
+					}
+					break;
+				case 7: // cloth
+					for (let val = 0; val < vals; val++) {
+						const selectedClothes = choices(clothes, clothes_p)[0];
+						console.log(selectedClothes);
+					}
+					break;
+				case 8: // scrolls
+						// ...
+					break;
+				case 9: // grimoire
+						// ...
+					break;
+				case 0: // random
+						// ...
+					break;
+			}
+		}
+		cc = cc + 1;
+	}
+}
 function wfrp4LootGenerator (treasuretype, namefilter) {
+	newLoot("Temple");
     if (namefilter === undefined) {
         namefilter = "";
     } else { console.log (namefilter); }
@@ -2629,3 +2715,205 @@ function wfrp4LootGenerator (treasuretype, namefilter) {
 	
 }
 
+
+cols = ["Brass Pennies", "Silver Shillings", "Gold Crowns", "Domestic", "Gems", "Art", "Cloth", "Scrolls", "Grimoire", "Random"]
+random_treasure = {
+	"Hovel":
+		[1, [50, 1, 10],
+			[10, 1, 5],
+			[1, 1, 1],
+			[10, 1, 5],
+			[0, 0, 0],
+			[0, 0, 0],
+			[10, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"House":
+		[2, [100, 6, 60],
+			[100, 2, 20],
+			[25, 1, 10],
+			[100, 1, 10],
+			[5, 1, 5],
+			[10, 1, 2],
+			[25, 1, 5],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Estate":
+		[3, [100, 2, 200],
+			[100, 1, 100],
+			[100, 1, 100],
+			[100, 2, 20],
+			[90, 1, 10],
+			[75, 1, 10],
+			[100, 1, 10],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Wizard Home":
+		[3, [100, 3, 30],
+			[75, 5, 50],
+			[50, 3, 30],
+			[25, 1, 5],
+			[75, 1, 5],
+			[75, 1, 2],
+			[25, 1, 5],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Shrine":
+		[1, [100, 1, 10],
+			[50, 1, 10],
+			[5, 1, 5],
+			[0, 0, 0],
+			[25, 1, 1],
+			[75, 1, 1],
+			[5, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Temple":
+		[3,[100, 5, 500],
+			[75, 1, 100],
+			[50, 5, 50],
+			[25, 1, 10],
+			[75, 1, 5],
+			[50, 1, 5],
+			[100, 1, 10],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Small Monster":
+		[2,[50, 1, 10],
+			[15, 2, 20],
+			[15, 1, 5],
+			[0, 0, 0],
+			[15, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Large Monster":
+		[3,[75, 2, 200],
+			[50, 1, 100],
+			[25, 1, 100],
+			[5, 1, 10],
+			[75, 1, 10],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Chest Open":
+		[2,[25, 1, 100],
+			[25, 1, 10],
+			[5, 1, 10],
+			[5, 1, 1],
+			[5, 1, 1],
+			[0, 0, 0],
+			[5, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Chest Secure":
+		[3,[100, 5, 50],
+			[100, 3, 30],
+			[50, 2, 20],
+			[10, 1, 1],
+			[15, 1, 10],
+			[5, 1, 1],
+			[15, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Chest Vault":
+		[3,[100, 5, 500],
+			[100, 4, 400],
+			[100, 3, 300],
+			[0, 0, 0],
+			[100, 1, 100],
+			[100, 1, 10],
+			[25, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Peasant":
+		[1,[15, 1, 10],
+			[5, 1, 2],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0],
+			[1, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Citizen":
+		[2,[75, 1, 10],
+			[75, 1, 10],
+			[5, 1, 5],
+			[0, 0, 0],
+			[1, 1, 1],
+			[0, 0, 0],
+			[5, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Noble":
+		[3,[100, 1, 100],
+			[100, 2, 20],
+			[100, 1, 10],
+			[0, 0, 0],
+			[50, 1, 2],
+			[5, 1, 1],
+			[100, 1, 5],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Wizard":
+		[3,[25, 2, 20],
+			[50, 2, 20],
+			[50, 1, 10],
+			[0, 0, 0],
+			[5, 1, 1],
+			[0, 0, 0],
+			[1, 1, 1],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+	"Test":
+		[2,[25, 2, 20],
+			[100, 2, 20],
+			[100, 1, 10],
+			[100, 2, 3],
+			[100, 2, 3],
+			[100, 2, 3],
+			[100, 2, 3],
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]],
+};
+domestic_items = ["Candelabra & Candles", "Cups & Glasses", "Cutlery", "Goblets", "Lantern & Oil", "Pipe & Tobacco",
+	"Plates & Bowls", "Teaware", "Wine & Spirits", "Other Trapping"];
+gems = ["Amber / Amethyst / Beryl", "Agate / Aquamarine / Diamond", "Hematite / Bloodstone / Emerald",
+	"Lapis Lazuli / Citrine / Garnet", "Malachite / Jasper / Jade", "Rhodocrosite / Moonstone / Opal",
+	"Obsidian / Onyx / Pearl", "Quartz / Peridot / Ruby", "Tiger Eye / Topaz / Sapphire",
+	"Turquoise / Zircon / Spinel"];
+jewellery = ["Amulet", "Armlet", "Bracelet", "Brooch", "Chain", "Choker", "Circlet", "Cuf Links", "Earrings", "Hairpin",
+	"Hatpin", "Locket", "Medallion", "Necklace", "Pendant", "Pocket Watch", "Prayer Beads", "Ring, Decorative",
+	"Ring, Promise", "Ring, Wedding", "Signet Ring", "Torc"];
+jewellery_p = [5, 4, 5, 4, 4, 3, 4, 4, 9, 4, 4, 5, 5, 5, 4, 4, 4, 5, 4, 4, 5, 5];
+art = ["Abacus", "Carved Dragon Egg", "Ceremonial Weapon", "Chalice", "Costume Mask", "Crown (false or real)",
+	"Decorative Comb", "Doll", "Engraved Dice", "Figurine", "Flask", "Flute", "Framed Portrait",
+	"Game Board & Pieces", "Harp (Toy)", "Idol", "Instrument", "Ivory Drinking Horn", "Jewellery Box",
+	"Large Statue", "Letter Opener", "Mini Sarcophagus", "Music Box", "Orrery", "Painting", "Paperweight",
+	"Pewter Mug", "Sceptre", "Small Mirror", "Statuette", "Vase", "War Mask", "Wood Carving", "Other Trapping"];
+art_p = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1];
+clothes = ["Animal Pelt", "Belt", "Blankets", "Boots & Shoes", "Cape", "Cloak", "Clothes, Fine", "Clothes, Practical",
+	"Clothes, Travel", "Coat", "Costume", "Courtly Garb ", "Drapes, Fine ", "Embroidery ", "Fur Coat ",
+	"Fur Stole", "Gloves, Fine", "Gloves, Practical", "Handkerchief, Silk", "Hat, Fancy", "Hat, Practical",
+	"Linens, Fine", "Linens, Practical", "Pouch", "Purse", "Robes", "Rug, Fine", "Rug, Woven", "Shawl",
+	"Tapestry", "Uniform", "Walking Cane", "Wall Hanging", "Other Trapping"];
+clothes_p = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1];
