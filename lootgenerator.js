@@ -91,7 +91,7 @@ Hooks.on("renderSidebarTab", async (app, html) => {
 	}
 });
 
-function choices(items, probabilities) {
+function choices(items, probabilities) { // TODO convert to foundry Roll
 	const totalProb = probabilities.reduce((acc, prob) => acc + prob, 0);
 	const rand = Math.random() * totalProb;
 	let cumulativeProb = 0;
@@ -106,78 +106,97 @@ function choices(items, probabilities) {
 	// If probabilities do not add up to 1, return a random item
 	return items[Math.floor(Math.random() * items.length)];
 }
-function roll_cat(args) {
-	// args: [p, min, max]
-	if (getRandomNumberInRange(1, 100) < args[0]) {
-		return getRandomNumberInRange(args[1], args[2]);
+function rollForTable(rollTable) { // TODO convert to foundry Roll
+	// rollTable: [p, min, max]
+	if (getRandomNumberInRange(1, 100) < rollTable[0]) {	// determine if this loots drops at all
+		return getRandomNumberInRange(rollTable[1], rollTable[2]);	// determine how much of it drops
 	} else {
-		return 0;
+		return 0;	// didn't find any loot
 	}
 }
+
 function getRandomNumberInRange(min, max) {
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-function newLoot(status){
-	console.log("Looting: " + status);
-	const table = random_treasure[status];
-	let cc = 1;  // current category (pennies, shillings, ...)
-	console.log(table);
-	let level = table[0];
+async function rollAllCategories(lootingLocation) {
 
+	console.log("Looting: " + lootingLocation);
+	const currentLocationTable = treasure_locations[lootingLocation];
+	//console.log(table);
+	let level = currentLocationTable[0];	// level = brass, silver , gold
+	//currentLocationTable.shift();	// delete first row (level row)
 
-	for (const e of table) {
-		const vals = roll_cat(e);
-		if (vals !== 0) {
-			console.log(cols[cc - 1] + ":");
-			console.log(vals);
-			switch (cc) {
+	for (let currentCategory = 1; currentCategory < currentLocationTable.length; currentCategory++) { // current category (pennies, domestic, gems, cloth, ...)
+		const rolledLootAmount = rollForTable(currentLocationTable[currentCategory]);	// roll for current subtable (table for pennies, domestic, gems, cloth, ...)
+		if (rolledLootAmount !== 0) {	// 0 = didn't drop any loot for this category
+			console.log("# Category " + lootCategoryNames[currentCategory - 1] + ":");
+			console.log("Rolling "+ rolledLootAmount + " pices of " + lootCategoryNames[currentCategory - 1]);
+			switch (currentCategory) {
 				case 4: // domestic
-					for (let val = 0; val < vals; val++) {
-						console.log(domestic_items[Math.floor(Math.random() * 10)]);
+					for (let val = 0; val < rolledLootAmount; val++) {
+						console.log(domestic_items[Math.floor(Math.random() * 10)]);  // TODO: convert to item-element
 					}
 					break;
 				case 5: // gems
-					for (let val = 0; val < vals; val++) {
+					for (let val = 0; val < rolledLootAmount; val++) {
 						if (Math.floor(Math.random() * 10) < 6) {
 							// roll gem
 							const splitted_gems = gems[Math.floor(Math.random() * 10)].split(" / ");
 							console.log(splitted_gems[level - 1]);
 						} else {
 							// roll jewellery
-							const selectedJewellery = choices(jewellery, jewellery_p)[0];
+							const selectedJewellery = choices(jewellery, jewellery_p);
 							console.log(selectedJewellery);
 						}
-						console.log("...worth " + roll(2, 10, false) + " " + get_loc_level(level));
+						//let r = new Roll(2 + "d" + 10);
+						const r = await new Roll(2 + "d" + 10).roll({ async: true });
+						console.log("...worth " + r.total + " " + get_loc_level(level));
 					}
 					break;
 				case 6: // art
-					for (let val = 0; val < vals; val++) {
-						const selectedArt = choices(art, art_p)[0];
+					for (let val = 0; val < rolledLootAmount; val++) {
+						const selectedArt = choices(art, art_p);
 						console.log(selectedArt);
 					}
 					break;
 				case 7: // cloth
-					for (let val = 0; val < vals; val++) {
-						const selectedClothes = choices(clothes, clothes_p)[0];
+					for (let val = 0; val < rolledLootAmount; val++) {
+						const selectedClothes = choices(clothes, clothes_p);
 						console.log(selectedClothes);
 					}
 					break;
 				case 8: // scrolls
-						// ...
+					// ...
 					break;
 				case 9: // grimoire
-						// ...
+					// ...
 					break;
 				case 0: // random
-						// ...
+					// ...
 					break;
 			}
+			currentCategory++;
+		} else {
+			console.log("no loot for category " + currentCategory)
 		}
-		cc = cc + 1;
+
 	}
 }
-function wfrp4LootGenerator (treasuretype, namefilter) {
-	newLoot("Temple");
+function get_loc_level(level){
+	if (level === 1){
+		return "brass pennies";
+
+	}else if (level === 2){
+		return "silver shillings";
+
+	}else if (level === 3){
+		return "gold crowns";
+
+	}
+}
+
+async function wfrp4LootGenerator (treasuretype, namefilter) {
+	rollAllCategories("Temple");
     if (namefilter === undefined) {
         namefilter = "";
     } else { console.log (namefilter); }
@@ -2716,8 +2735,8 @@ function wfrp4LootGenerator (treasuretype, namefilter) {
 }
 
 
-cols = ["Brass Pennies", "Silver Shillings", "Gold Crowns", "Domestic", "Gems", "Art", "Cloth", "Scrolls", "Grimoire", "Random"]
-random_treasure = {
+lootCategoryNames = ["Brass Pennies", "Silver Shillings", "Gold Crowns", "Domestic", "Gems", "Art", "Cloth", "Scrolls", "Grimoire", "Random"]
+treasure_locations = {
 	"Hovel":
 		[1, [50, 1, 10],
 			[10, 1, 5],
